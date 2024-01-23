@@ -147,4 +147,4 @@ if __name__ == '__main__':
 
     # write to xml file
     shuffled_tree = ET.ElementTree(annotations)
-    shuffled_tree.write('shuffled_file_list.xml')
+    shuffled_tree.write('shuffled_files.xml')
