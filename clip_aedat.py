@@ -88,6 +88,33 @@ def process_data(args, file):
     slicer.accept(data)
 
 
+def parse_to_new_xml(elements, partition):
+    new_elem = ET.Element(partition)
+
+    # create labels
+    label_names  = ['fire', 'person', 'other']
+    label_colors = ['#33ddff', '#ff6037', '#b83df5']
+    labels_elem  = ET.SubElement(new_elem, 'labels')
+    for name, color in zip(label_names, label_colors):
+        label_elem = ET.SubElement(labels_elem, 'label')
+        
+        name_elem = ET.SubElement(label_elem, 'name')
+        name_elem.text = name
+        
+        color_elem = ET.SubElement(label_elem, 'color')
+        color_elem.text = color
+
+    # create annotations
+    annotations_elem = ET.SubElement(new_elem, 'annotations')
+    for id, image_elem in enumerate(elements):
+        image_elem.set('id', f"{id}")
+        annotations_elem.append(image_elem)
+
+    # save to file
+    shuffled_tree = ET.ElementTree(new_elem)
+    shuffled_tree.write(f'shuffled_{partition}.xml')
+
+
 if __name__ == '__main__':
     # parse arguments
     parser = argparse.ArgumentParser(description="paramters")
@@ -134,18 +161,6 @@ if __name__ == '__main__':
     train_set   = element_list[:ratio_index]
     test_set    = element_list[ratio_index:]
     
-    # append elements to train
-    train_elem = ET.Element('train')
-    for id, image_elem in enumerate(train_set):
-        image_elem.set('id', f"{id}")
-        train_elem.append(image_elem)
-    shuffled_tree = ET.ElementTree(train_elem)
-    shuffled_tree.write('shuffled_train.xml')
-
-    # append elements to test
-    test_elem = ET.Element('test')
-    for id, image_elem in enumerate(test_set):
-        image_elem.set('id', f"{id}")
-        test_elem.append(image_elem)
-    shuffled_tree = ET.ElementTree(train_elem)
-    shuffled_tree.write('shuffled_test.xml')
+    # write to new files
+    parse_to_new_xml(train_set, 'train')
+    parse_to_new_xml(test_set, 'test')
