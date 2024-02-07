@@ -112,11 +112,13 @@ if __name__ == '__main__':
     # recursively obtain file list
     element_list = []
     for file in tqdm(sorted(glob.glob(f"{input_path}/*"))):
+        # clip data and generate images
         process_data(args, file)
 
         # parse annotations
         tree = ET.parse(os.path.join(file, 'annotations.xml'))
         for image in tree.getroot().findall('.//image'):
+            
             # reset name
             original_name = image.get('name').split('/')
             modified_name = f"{original_name[0]}/clips/{original_name[1][9:14]}.aedat4"
@@ -131,20 +133,19 @@ if __name__ == '__main__':
     ratio_index = int(0.8 * len(element_list))
     train_set   = element_list[:ratio_index]
     test_set    = element_list[ratio_index:]
-    annotations = ET.Element("annotations")
     
     # append elements to train
-    train_elem = ET.SubElement(annotations, 'train')
+    train_elem = ET.Element('train')
     for id, image_elem in enumerate(train_set):
         image_elem.set('id', f"{id}")
         train_elem.append(image_elem)
+    shuffled_tree = ET.ElementTree(train_elem)
+    shuffled_tree.write('shuffled_train.xml')
 
     # append elements to test
-    test_elem = ET.SubElement(annotations, 'test')
+    test_elem = ET.Element('test')
     for id, image_elem in enumerate(test_set):
         image_elem.set('id', f"{id}")
         test_elem.append(image_elem)
-
-    # write to xml file
-    shuffled_tree = ET.ElementTree(annotations)
-    shuffled_tree.write('shuffled_files.xml')
+    shuffled_tree = ET.ElementTree(train_elem)
+    shuffled_tree.write('shuffled_test.xml')
